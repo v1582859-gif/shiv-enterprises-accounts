@@ -1,3 +1,5 @@
+(() => {
+'use strict';
 const $ = (id) => document.getElementById(id);
 const money = (n) => new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:2}).format(Number(n||0));
 const today = () => new Date().toISOString().slice(0,10);
@@ -51,3 +53,5 @@ $('exportTransactions').addEventListener('click',()=>csvDownload('shiv-transacti
 $('exportStock').addEventListener('click',()=>csvDownload('shiv-stock.csv',[['Date','Movement','Product','Size','Quantity','Unit cost','Notes'],...stockMoves.map(m=>[m.movement_date,m.movement,m.product_type,m.size,m.quantity,m.unit_cost,m.notes])]));
 $('exportParties').addEventListener('click',()=>csvDownload('shiv-parties.csv',[['Name','Type','Phone','Notes'],...parties.map(p=>[p.name,p.party_type,p.phone,p.notes])]));
 $('backupBtn').addEventListener('click',()=>{const blob=new Blob([JSON.stringify({exported_at:new Date().toISOString(),transactions,stockMoves,parties,opening},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='shiv-enterprises-backup.json';a.click();URL.revokeObjectURL(url);});
+
+})();
