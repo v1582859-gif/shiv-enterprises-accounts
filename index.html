@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0d12">
+<meta name="description" content="Private accounting workspace for Shiv Enterprises.">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+<title>Shiv Enterprises • Accounts</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="loginScreen" class="login-wrap">
+  <div class="login-card">
+    <div class="brand-mark">SE</div>
+    <p class="eyebrow">SHIV ENTERPRISES</p>
+    <h1>Business accounts,<br><span>under control.</span></h1>
+    <p class="muted">Private accounting workspace · GST billing not included</p>
+    <div id="setupFields">
+      <label>Supabase Project URL<input id="projectUrl" placeholder="https://your-project.supabase.co"></label>
+      <label>Supabase Publishable / Anon Key<input id="anonKey" placeholder="Paste your public anon key"></label>
+      <label>Email<input id="email" type="email" placeholder="you@example.com"></label>
+      <label>Password<input id="password" type="password" placeholder="Create or enter password"></label>
+      <div class="button-row">
+        <button id="signInBtn" class="primary">Sign in</button>
+        <button id="signUpBtn" class="secondary">Create account</button>
+      </div>
+      <p class="tiny muted">Credentials are saved only in this app's local browser storage. Use a strong unique password.</p>
+    </div>
+    <p id="loginMessage" class="message"></p>
+  </div>
+</div>
+
+<div id="appShell" class="app-shell hidden">
+  <aside class="sidebar">
+    <div class="side-brand"><div class="brand-mark small">SE</div><div><strong>SHIV ENTERPRISES</strong><small>ACCOUNTS DESK</small></div></div>
+    <nav id="nav">
+      <button class="nav-item active" data-view="dashboard">▦ <span>Dashboard</span></button>
+      <button class="nav-item" data-view="transactions">⇄ <span>Transaction ledger</span></button>
+      <button class="nav-item" data-view="stock">▤ <span>Stock register</span></button>
+      <button class="nav-item" data-view="parties">♙ <span>Customers & suppliers</span></button>
+      <button class="nav-item" data-view="reports">◫ <span>Reports & export</span></button>
+      <button class="nav-item" data-view="settings">⚙ <span>Settings & backup</span></button>
+    </nav>
+    <div class="sidebar-bottom"><span class="online-dot"></span><span id="connectionLabel">Not connected</span><button id="signOutBtn" class="link-button">Sign out</button></div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div><p class="eyebrow" id="viewEyebrow">OVERVIEW</p><h2 id="viewTitle">Dashboard</h2></div>
+      <div class="top-actions"><span class="date-pill" id="todayLabel"></span><button class="primary" id="quickAddBtn">＋ Add transaction</button></div>
+    </header>
+    <section id="view-dashboard" class="view">
+      <div class="welcome"><div><p class="eyebrow gold">SHIV ENTERPRISES · PRIVATE BOOKS</p><h1>Your business, <span>clearly accounted for.</span></h1><p class="muted">Track cash, bank, dues, expenses and door/frame stock in one place.</p></div><div class="welcome-icon">₹</div></div>
+      <div class="metric-grid">
+        <div class="metric"><p>Cash in hand</p><h3 id="cashMetric">₹0.00</h3><small>Opening balance + cash movements</small></div>
+        <div class="metric"><p>Bank balance</p><h3 id="bankMetric">₹0.00</h3><small>Opening balance + bank movements</small></div>
+        <div class="metric"><p>Customer receivables</p><h3 id="receivableMetric">₹0.00</h3><small>Unpaid sales / amounts due</small></div>
+        <div class="metric"><p>Supplier payables</p><h3 id="payableMetric">₹0.00</h3><small>Unpaid purchases / amounts due</small></div>
+      </div>
+      <div class="two-col">
+        <div class="panel"><div class="panel-heading"><div><p class="eyebrow">RECENT ACTIVITY</p><h3>Latest transactions</h3></div><button class="text-button" data-goto="transactions">View ledger →</button></div><div id="recentTransactions" class="table-wrap"></div></div>
+        <div class="panel"><div class="panel-heading"><div><p class="eyebrow">INVENTORY</p><h3>Stock snapshot</h3></div><button class="text-button" data-goto="stock">Open stock →</button></div><div id="stockSnapshot"></div></div>
+      </div>
+      <div class="notice"><strong>Accounting note:</strong> This is a starter bookkeeping app, not a certified accounting package. Verify opening balances and reports with your accountant before relying on them for business decisions.</div>
+    </section>
+
+    <section id="view-transactions" class="view hidden">
+      <div class="panel">
+        <div class="panel-heading"><div><p class="eyebrow">LEDGER</p><h3>Record a transaction</h3></div><span class="subtle">Synced to your private cloud account</span></div>
+        <form id="transactionForm" class="form-grid">
+          <label>Date<input id="txDate" type="date" required></label>
+          <label>Transaction type<select id="txType" required><option value="sale">Sale</option><option value="purchase">Purchase</option><option value="receipt">Customer receipt</option><option value="supplier_payment">Supplier payment</option><option value="expense">Expense</option><option value="income">Other income</option><option value="owner_in">Owner capital added</option><option value="owner_out">Owner withdrawal</option><option value="transfer">Cash ↔ bank transfer</option><option value="customer_advance">Customer advance received</option><option value="supplier_advance">Supplier advance paid</option></select></label>
+          <label>Amount (₹)<input id="txAmount" type="number" min="0.01" step="0.01" placeholder="0.00" required></label>
+          <label>Payment account<select id="txAccount"><option value="cash">Cash in hand</option><option value="bank">Bank</option><option value="credit">Credit / unpaid</option></select></label>
+          <label>Customer / Supplier<input id="txParty" placeholder="Party name (optional)"></label>
+          <label>Category<input id="txCategory" placeholder="e.g. Transport, rent, doors"></label>
+          <label class="span-2">Description / reference<input id="txNotes" placeholder="Invoice no., payment details, notes"></label>
+          <div class="span-2 form-footer"><p class="tiny muted">For credit sales/purchases, choose “Credit / unpaid”. Use receipt/payment entries when money is later collected or paid.</p><button class="primary" type="submit">Save transaction</button></div>
+        </form>
+      </div>
+      <div class="panel"><div class="panel-heading"><div><p class="eyebrow">ALL ENTRIES</p><h3>Transaction ledger</h3></div><input id="ledgerSearch" class="search" placeholder="Search party, category, notes…"></div><div id="ledgerTable" class="table-wrap"></div></div>
+    </section>
+
+    <section id="view-stock" class="view hidden">
+      <div class="panel"><div class="panel-heading"><div><p class="eyebrow">INVENTORY</p><h3>Add stock movement</h3></div></div>
+        <form id="stockForm" class="form-grid">
+          <label>Date<input id="stockDate" type="date" required></label>
+          <label>Movement<select id="stockMovement"><option value="in">Stock received / opening stock</option><option value="out">Stock sold / dispatched</option><option value="adjustment">Adjustment (use positive or negative qty)</option></select></label>
+          <label>Product type<select id="stockType"><option>Laminate Door</option><option>Lamination Door</option><option>WPC Frame</option><option>Other</option></select></label>
+          <label>Size / specification<input id="stockSize" placeholder="e.g. 30 × 78 inch / 5 mm"></label>
+          <label>Quantity<input id="stockQty" type="number" step="0.01" required placeholder="0"></label>
+          <label>Unit cost (₹)<input id="stockCost" type="number" min="0" step="0.01" placeholder="0.00"></label>
+          <label class="span-2">Notes<input id="stockNotes" placeholder="Supplier, design, batch or reference"></label>
+          <div class="span-2 form-footer"><p class="tiny muted">Record opening stock once. Sales/purchases do not automatically change stock in this starter version; enter the matching stock movement separately.</p><button class="primary" type="submit">Save stock movement</button></div>
+        </form>
+      </div>
+      <div class="panel"><div class="panel-heading"><div><p class="eyebrow">ON-HAND QUANTITIES</p><h3>Stock register</h3></div></div><div id="stockTable" class="table-wrap"></div></div>
+    </section>
+
+    <section id="view-parties" class="view hidden">
+      <div class="panel"><div class="panel-heading"><div><p class="eyebrow">CONTACT BOOK</p><h3>Add customer or supplier</h3></div></div>
+        <form id="partyForm" class="form-grid">
+          <label>Party name<input id="partyName" required placeholder="Name / business"></label>
+          <label>Party type<select id="partyType"><option value="customer">Customer</option><option value="supplier">Supplier</option><option value="both">Both</option></select></label>
+          <label>Phone (optional)<input id="partyPhone" placeholder="Phone number"></label>
+          <label>Notes (optional)<input id="partyNotes" placeholder="Area, terms, etc."></label>
+          <div class="span-2 form-footer"><button class="primary" type="submit">Save party</button></div>
+        </form>
+      </div>
+      <div class="panel"><div class="panel-heading"><div><p class="eyebrow">PARTIES</p><h3>Customers & suppliers</h3></div></div><div id="partyTable" class="table-wrap"></div></div>
+    </section>
+
+    <section id="view-reports" class="view hidden">
+      <div class="metric-grid">
+        <div class="metric"><p>Sales recorded</p><h3 id="salesReport">₹0.00</h3></div>
+        <div class="metric"><p>Purchases recorded</p><h3 id="purchasesReport">₹0.00</h3></div>
+        <div class="metric"><p>Expenses recorded</p><h3 id="expensesReport">₹0.00</h3></div>
+        <div class="metric"><p>Estimated net result</p><h3 id="profitReport">₹0.00</h3><small>Sales + other income − purchases − expenses</small></div>
+      </div>
+      <div class="panel"><div class="panel-heading"><div><p class="eyebrow">DATA PORTABILITY</p><h3>Export your records</h3></div></div><p class="muted">Download CSV copies of transactions, stock movements and parties for your own records or spreadsheet review.</p><div class="button-row"><button id="exportTransactions" class="secondary">Export transactions CSV</button><button id="exportStock" class="secondary">Export stock CSV</button><button id="exportParties" class="secondary">Export parties CSV</button></div><div class="notice">The displayed net result is a simple cashbook-style estimate, not a complete accrual profit calculation. It does not yet calculate cost of goods sold from stock valuation.</div></div>
+    </section>
+
+    <section id="view-settings" class="view hidden">
+      <div class="panel"><div class="panel-heading"><div><p class="eyebrow">CONFIGURATION</p><h3>Opening balances</h3></div></div><p class="muted">Enter the real balances as of the date you start using this app. These are saved locally on this Mac and are not uploaded in this prototype.</p><form id="openingForm" class="form-grid"><label>Cash in hand (₹)<input id="openingCash" type="number" step="0.01" value="0"></label><label>Bank balance (₹)<input id="openingBank" type="number" step="0.01" value="0"></label><label>Opening receivables (₹)<input id="openingReceivables" type="number" step="0.01" value="0"></label><label>Opening payables (₹)<input id="openingPayables" type="number" step="0.01" value="0"></label><div class="span-2 form-footer"><button class="primary" type="submit">Save opening balances</button></div></form></div>
+      <div class="panel"><div class="panel-heading"><div><p class="eyebrow">BACKUP</p><h3>Export a backup</h3></div></div><p class="muted">Exports the currently loaded records as JSON. Keep backup files in a private, secure location.</p><button class="secondary" id="backupBtn">Download JSON backup</button></div>
+      <div class="panel"><div class="panel-heading"><div><p class="eyebrow">ACCOUNT</p><h3>Cloud connection</h3></div></div><p class="muted">Your data is stored in your Supabase project. Do not share your service-role key; this app should use only the publishable/anon key with Row Level Security enabled.</p><button class="secondary" id="reconnectBtn">Change connection / sign in again</button></div>
+    </section>
+    <div id="toast" class="toast hidden"></div>
+  </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js"></script>
+<script>
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(err => console.warn('PWA offline cache unavailable:', err));
+    });
+  }
+</script>
+</body>
+</html>
